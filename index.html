@@ -1,123 +1,316 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Verify a certificate</title>
-<style>
-  :root {
-    --bg:#F1F4F8; --panel:#FFFFFF; --ink:#14213D; --muted:#5B6577;
-    --line:#D3DAE5; --ok:#1F7A4D; --bad:#A8322D; --accent:#B08D3C;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --bg:#0F1626; --panel:#172036; --ink:#E8ECF4; --muted:#9AA6BC;
-      --line:#2A3654; --ok:#5CC28B; --bad:#F08A84; --accent:#D2AE5C;
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Verify a certificate</title>
+
+  <style>
+    :root {
+      --bg: #F2F8F7;
+      --panel: #FFFFFF;
+      --ink: #167968;
+      --muted: #5B7772;
+      --line: #CFE2DE;
+      --ok: #167968;
+      --bad: #A8322D;
+      --accent: #3e9c8c;
     }
-  }
-  * { box-sizing: border-box; }
-  html, body { margin:0; }
-  body {
-    background:var(--bg); color:var(--ink); min-height:100vh;
-    font:16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
-    display:flex; justify-content:center; padding:48px 20px;
-  }
-  main { width:100%; max-width:520px; }
-  h1 { font:600 15px/1.2 system-ui, sans-serif; color:var(--muted); margin:0 0 20px; }
-  .panel {
-    background:var(--panel); border:1px solid var(--line);
-    border-top:4px solid var(--accent); border-radius:6px; padding:28px;
-  }
-  .status { display:flex; align-items:center; gap:10px; font-weight:600; margin-bottom:18px; }
-  .status.ok { color:var(--ok); } .status.bad { color:var(--bad); }
-  .status svg { flex:none; }
-  .name { font:italic 700 clamp(26px,7vw,34px)/1.15 Georgia, "Times New Roman", serif; margin:0 0 4px; }
-  .lead { color:var(--muted); margin:0 0 22px; }
-  dl { margin:0; display:grid; grid-template-columns:auto 1fr; gap:10px 18px; }
-  dt { color:var(--muted); } dd { margin:0; font-weight:600; overflow-wrap:anywhere; }
-  .actions { margin-top:24px; }
-  a.btn, button {
-    display:inline-block; font:inherit; font-weight:600; cursor:pointer; text-decoration:none;
-    color:var(--panel); background:var(--ink); border:0; border-radius:4px; padding:10px 16px;
-  }
-  a.btn:focus-visible, button:focus-visible, input:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
-  form { display:flex; gap:8px; margin-top:18px; }
-  input {
-    flex:1; min-width:0; font:inherit; padding:10px 12px; color:var(--ink);
-    background:var(--panel); border:1px solid var(--line); border-radius:4px;
-  }
-  .hint { color:var(--muted); font-size:14px; margin:14px 0 0; }
-</style>
-</head>
-<body>
-<main>
-  <h1>Certificate verification</h1>
-  <div class="panel" id="panel" aria-live="polite">Checking…</div>
-</main>
-<script>
-(function () {
-  var panel = document.getElementById("panel");
-  var ID_RE = /^[A-Z0-9-]{6,40}$/;
-  var id = (new URLSearchParams(location.search).get("id") || "").trim().toUpperCase();
 
-  function el(tag, cls, text) {
-    var e = document.createElement(tag);
-    if (cls) e.className = cls;
-    if (text !== undefined) e.textContent = text;
-    return e;
-  }
-  var CHECK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-7"/></svg>';
-  var CROSS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg>';
-
-  function lookupForm() {
-    var f = el("form");
-    var i = el("input"); i.placeholder = "PYSEM-2026-001-ABCD"; i.setAttribute("aria-label", "Control number");
-    i.autocomplete = "off"; i.value = id;
-    var b = el("button", "", "Verify"); b.type = "submit";
-    f.append(i, b);
-    f.addEventListener("submit", function (e) {
-      e.preventDefault();
-      location.search = "?id=" + encodeURIComponent(i.value.trim());
-    });
-    return f;
-  }
-  function status(ok, text) {
-    var s = el("div", "status " + (ok ? "ok" : "bad"));
-    s.innerHTML = ok ? CHECK : CROSS;
-    s.appendChild(el("span", "", text));
-    return s;
-  }
-  function notFound(msg) {
-    panel.replaceChildren(status(false, msg),
-      el("p", "lead", "Check the control number printed on the certificate, or scan its QR code again."),
-      lookupForm());
-  }
-
-  if (!id) {
-    panel.replaceChildren(el("p", "lead", "Scan the QR code on a certificate, or enter its control number."), lookupForm());
-    return;
-  }
-  if (!ID_RE.test(id)) { notFound("Not a valid control number"); return; }
-
-  fetch("records/" + id + ".json", { cache: "no-store" })
-    .then(function (r) { if (!r.ok) throw new Error("nf"); return r.json(); })
-    .then(function (d) {
-      var dl = el("dl");
-      [["Event", d.event], ["Date", d.date], ["Control no.", d.id]].forEach(function (p) {
-        dl.append(el("dt", "", p[0]), el("dd", "", p[1]));
-      });
-      var nodes = [status(true, "Valid certificate"), el("p", "lead", "Awarded to"),
-                   el("h2", "name", d.name), dl];
-      if (d.pdf) {
-        var a = el("a", "btn", "View certificate"); a.href = d.pdf; a.target = "_blank"; a.rel = "noopener";
-        var w = el("div", "actions"); w.appendChild(a); nodes.push(w);
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0D2521;
+        --panel: #153A34;
+        --ink: #E6F4F1;
+        --muted: #9FC5BE;
+        --line: #2B554E;
+        --ok: #3e9c8c;
+        --bad: #F08A84;
+        --accent: #3e9c8c;
       }
-      panel.replaceChildren.apply(panel, nodes);
-      panel.querySelector(".lead").style.marginBottom = "4px";
-      panel.querySelector(".name").style.marginBottom = "22px";
-    })
-    .catch(function () { notFound("No certificate found for " + id); });
-})();
-</script>
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      display: flex;
+      justify-content: center;
+      padding: 48px 20px;
+    }
+
+    main {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h1 {
+      font: 600 15px/1.2 system-ui, sans-serif;
+      color: var(--muted);
+      margin: 0 0 20px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 4px 16px rgba(22, 121, 104, 0.08);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.bad {
+      color: var(--bad);
+    }
+
+    .status svg {
+      flex: none;
+    }
+
+    .name {
+      font: italic 700 clamp(26px, 7vw, 34px)/1.15 Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      margin: 0 0 4px;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin: 0 0 22px;
+    }
+
+    dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px 18px;
+    }
+
+    dt {
+      color: var(--muted);
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 600;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .actions {
+      margin-top: 24px;
+    }
+
+    a.btn,
+    button {
+      display: inline-block;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      color: #167968;
+      background: #3e9c8c;
+      border: 0;
+      border-radius: 5px;
+      padding: 10px 16px;
+    }
+
+    a.btn:hover,
+    button:hover {
+      background: var(--accent);
+    }
+
+    a.btn:active,
+    button:active {
+      transform: translateY(1px);
+    }
+
+    a.btn:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      font: inherit;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+    }
+
+    input::placeholder {
+      color: #8AA8A2;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 14px 0 0;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Certificate verification</h1>
+
+    <div class="panel" id="panel" aria-live="polite">
+      Checking…
+    </div>
+  </main>
+
+  <script>
+    (function () {
+      var panel = document.getElementById("panel");
+      var ID_RE = /^[A-Z0-9-]{6,40}$/;
+      var id = (new URLSearchParams(location.search).get("id") || "").trim().toUpperCase();
+
+      function el(tag, cls, text) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text !== undefined) e.textContent = text;
+        return e;
+      }
+
+      var CHECK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-7"/></svg>';
+
+      var CROSS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg>';
+
+      function lookupForm() {
+        var f = el("form");
+
+        var i = el("input");
+        i.placeholder = "PYSEM-2026-001-ABCD";
+        i.setAttribute("aria-label", "Control number");
+        i.autocomplete = "off";
+        i.value = id;
+
+        var b = el("button", "", "Verify");
+        b.type = "submit";
+
+        f.append(i, b);
+
+        f.addEventListener("submit", function (e) {
+          e.preventDefault();
+          location.search = "?id=" + encodeURIComponent(i.value.trim());
+        });
+
+        return f;
+      }
+
+      function status(ok, text) {
+        var s = el("div", "status " + (ok ? "ok" : "bad"));
+        s.innerHTML = ok ? CHECK : CROSS;
+        s.appendChild(el("span", "", text));
+        return s;
+      }
+
+      function notFound(msg) {
+        panel.replaceChildren(
+          status(false, msg),
+          el("p", "lead", "Check the control number printed on the certificate, or scan its QR code again."),
+          lookupForm()
+        );
+      }
+
+      if (!id) {
+        panel.replaceChildren(
+          el("p", "lead", "Scan the QR code on a certificate, or enter its control number."),
+          lookupForm()
+        );
+        return;
+      }
+
+      if (!ID_RE.test(id)) {
+        notFound("Not a valid control number");
+        return;
+      }
+
+      fetch("records/" + id + ".json", { cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("nf");
+          return r.json();
+        })
+        .then(function (d) {
+          var dl = el("dl");
+
+          [
+            ["Event", d.event],
+            ["Date", d.date],
+            ["Control no.", d.id]
+          ].forEach(function (p) {
+            dl.append(
+              el("dt", "", p[0]),
+              el("dd", "", p[1])
+            );
+          });
+
+          var nodes = [
+            status(true, "Valid certificate"),
+            el("p", "lead", "Awarded to"),
+            el("h2", "name", d.name),
+            dl
+          ];
+
+          if (d.pdf) {
+            var a = el("a", "btn", "View certificate");
+            a.href = d.pdf;
+            a.target = "_blank";
+            a.rel = "noopener";
+
+            var w = el("div", "actions");
+            w.appendChild(a);
+            nodes.push(w);
+          }
+
+          panel.replaceChildren.apply(panel, nodes);
+
+          panel.querySelector(".lead").style.marginBottom = "4px";
+          panel.querySelector(".name").style.marginBottom = "22px";
+        })
+        .catch(function () {
+          notFound("No certificate found for " + id);
+        });
+    })();
+  </script>
+
 </body>
+
 </html>
