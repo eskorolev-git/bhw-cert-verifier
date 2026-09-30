@@ -8,27 +8,16 @@
 
   <style>
     :root {
-      --bg: #F2F8F7;
-      --panel: #FFFFFF;
-      --ink: #167968;
-      --muted: #5B7772;
-      --line: #CFE2DE;
-      --ok: #167968;
-      --bad: #A8322D;
-      --accent: #3e9c8c;
-    }
-
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --bg: #0D2521;
-        --panel: #153A34;
-        --ink: #E6F4F1;
-        --muted: #9FC5BE;
-        --line: #2B554E;
-        --ok: #3e9c8c;
-        --bad: #F08A84;
-        --accent: #3e9c8c;
-      }
+      --bg: #061D1F;
+      --panel: #0B2A2D;
+      --ink: #DDF3F4;
+      --muted: #77A9AC;
+      --line: #175055;
+      --ok: #268E98;
+      --bad: #E86660;
+      --accent: #268E98;
+      --btn-text: #FFFFFF;
+      --title-text: #268E98;
     }
 
     * {
@@ -40,15 +29,37 @@
       margin: 0;
     }
 
-body {
-  background: url("verifier-bg.png") center center / cover no-repeat fixed;
-  color: var(--ink);
-  min-height: 100vh;
-  font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
-  display: flex;
-  justify-content: center;
-  padding: 48px 20px;
-}
+    body {
+      background: url("verifier-bg.png") center center / cover no-repeat fixed;
+      color: var(--ink);
+      min-height: 100vh;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px;
+      position: relative;
+      z-index: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60vw;
+      height: 90vh;
+      max-width: 800px;
+      max-height: 1200px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      filter: blur(100px);
+
+      z-index: -1;
+
+      pointer-events: none;
+    }
 
     main {
       width: 100%;
@@ -56,9 +67,11 @@ body {
     }
 
     h1 {
-      font: 600 15px/1.2 system-ui, sans-serif;
-      color: var(--muted);
+      font: 600 24px/1.2 system-ui, sans-serif;
+      color: var(--title-text);
       margin: 0 0 20px;
+      text-align: center;
+      /* Adds center alignment */
     }
 
     .panel {
@@ -67,7 +80,7 @@ body {
       border-top: 4px solid var(--accent);
       border-radius: 8px;
       padding: 28px;
-      box-shadow: 0 4px 16px rgba(22, 121, 104, 0.08);
+      box-shadow: 0 4px 16px rgba(37, 140, 86, 0.12);
     }
 
     .status {
@@ -107,7 +120,8 @@ body {
       line-height: 1.6;
       margin: 0 0 22px;
       padding: 12px 14px;
-      background: #F2F8F7;
+      background: #0D261A;
+      /* Slightly darker than panel for contrast */
       border-left: 3px solid var(--accent);
       border-radius: 4px;
     }
@@ -141,8 +155,8 @@ body {
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
-      color: #167968;
-      background: #3e9c8c;
+      color: var(--btn-text);
+      background: var(--accent);
       border: 0;
       border-radius: 5px;
       padding: 10px 16px;
@@ -150,7 +164,7 @@ body {
 
     a.btn:hover,
     button:hover {
-      background: var(--accent);
+      filter: brightness(1.1);
     }
 
     a.btn:active,
@@ -183,7 +197,7 @@ body {
     }
 
     input::placeholder {
-      color: #8AA8A2;
+      color: var(--muted);
     }
 
     input:focus {
@@ -195,18 +209,29 @@ body {
       font-size: 14px;
       margin: 14px 0 0;
     }
+
+    .webinar-image {
+      display: block;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      margin-bottom: 48px;
+      margin-top: 48px;
+      border-radius: 8px;
+    }
   </style>
 </head>
 
 <body>
+  <img src="title-webinar.png" alt="Webinar title" class="webinar-image">
   <main>
     <h1>Certificate verification</h1>
 
     <div class="panel" id="panel" aria-live="polite">
       Checking…
     </div>
-  </main>
 
+  </main>
   <script>
     (function () {
       var panel = document.getElementById("panel");
