@@ -101,6 +101,17 @@
       margin: 0 0 22px;
     }
 
+    .verification-note {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 22px;
+      padding: 12px 14px;
+      background: #F2F8F7;
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+    }
+
     dl {
       margin: 0;
       display: grid;
@@ -217,7 +228,7 @@
         var f = el("form");
 
         var i = el("input");
-        i.placeholder = "PYSEM-2026-001-ABCD";
+        i.placeholder = "CPEWR-2026-001-ABCD";
         i.setAttribute("aria-label", "Control number");
         i.autocomplete = "off";
         i.value = id;
@@ -282,10 +293,19 @@
             );
           });
 
+          var verificationNote = el(
+            "p",
+            "verification-note",
+            "This certificate verifies that " +
+            d.name +
+            " participated in the stated event and that the certificate bears the signatures of the authorized persons indicated on the certificate."
+          );
+
           var nodes = [
             status(true, "Valid certificate"),
             el("p", "lead", "Awarded to"),
             el("h2", "name", d.name),
+            verificationNote,
             dl
           ];
 
@@ -303,7 +323,7 @@
           panel.replaceChildren.apply(panel, nodes);
 
           panel.querySelector(".lead").style.marginBottom = "4px";
-          panel.querySelector(".name").style.marginBottom = "22px";
+          panel.querySelector(".name").style.marginBottom = "18px";
         })
         .catch(function () {
           notFound("No certificate found for " + id);
