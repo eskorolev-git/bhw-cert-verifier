@@ -73,7 +73,45 @@
       text-align: center;
       /* Adds center alignment */
     }
+.page-head {
+  position: relative;
+  margin: 0 0 20px;
+}
 
+.page-head h1 {
+  margin: 0;
+  padding: 0 52px; /* keeps the title from running under the button on narrow screens */
+}
+
+.back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--title-text);
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.back:hover {
+  background: var(--accent);
+  color: var(--btn-text);
+}
+
+.back:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
     .panel {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -233,7 +271,10 @@
 <body>
   <img src="title-webinar.png" alt="Webinar title" class="webinar-image">
   <main>
-    <h1>Certificate Verification</h1>
+    <div class="page-head">
+  <a class="back" href="./" aria-label="Back to home">&lt;</a>
+  <h1>Certificate Verification</h1>
+</div>
 
     <div class="panel" id="panel" aria-live="polite">
       Checking…
