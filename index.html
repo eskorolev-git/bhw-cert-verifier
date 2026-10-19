@@ -210,6 +210,15 @@
       margin: 14px 0 0;
     }
 
+    .lost-note {
+      color: var(--muted);
+      font-size: clamp(0.75rem, 0.7rem + 0.4vw, 0.85rem);
+      line-height: 1.5;
+      margin: 22px 0 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
     .webinar-image {
       display: block;
       width: 100%;
@@ -322,7 +331,7 @@
             "verification-note",
             "This certificate verifies that " +
             d.name +
-            " participated in the stated event, organized as part of the RTU Boni CpE Seminars and Field Trips subject. The digital copy is unsigned. Authentic printed copies carry the handwritten signature of the subject adviser."
+            " participated in the stated event, organized as part of the RTU Boni CpE Seminars and Field Trips subject."
           );
 
           var nodes = [
@@ -342,6 +351,13 @@
             var w = el("div", "actions");
             w.appendChild(a);
             nodes.push(w);
+
+            nodes.push(el(
+              "p",
+              "lost-note",
+              "Lost your certificate? You can view and save the digital copy of your certificate here. " +
+              "It is unsigned. The printed copy carries the handwritten signature of the subject adviser."
+            ));
           }
 
           panel.replaceChildren.apply(panel, nodes);
