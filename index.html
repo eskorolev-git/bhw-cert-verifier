@@ -4,7 +4,6 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Verify a certificate</title>
-  <!-- Link to the external CSS file -->
   <link rel="stylesheet" href="design.css">
 </head>
 <body>
@@ -19,154 +18,13 @@
   </div>
 
   <main id="mainContent">
-    <!-- Content injected via JS -->
+    <!-- Content injected via app.js -->
   </main>
 
   <div class="credits">
     credits: GROUP 8 | CEIT-03-702P | SEMINARS AND FIELD TRIPS
   </div>
 
-  <script>
-    (function () {
-      var mainContent = document.getElementById("mainContent");
-      var topBar = document.getElementById("topBar");
-      var headerContainer = document.getElementById("headerContainer");
-      var ID_RE = /^[A-Z0-9-]{6,40}$/;
-      var id = (new URLSearchParams(location.search).get("id") || "").trim().toUpperCase();
-
-      function el(tag, cls, text) {
-        var e = document.createElement(tag);
-        if (cls) e.className = cls;
-        if (text !== undefined) e.textContent = text;
-        return e;
-      }
-
-      var CHECK = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>';
-      var CROSS = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg>';
-
-      function lookupForm() {
-        var container = el("div", "lookup-container");
-        var p = el("p", "", "Enter a control number or scan the qr code");
-        
-        var f = el("form");
-        var i = el("input");
-        i.placeholder = "CPEWR-2026-001-NNNN";
-        i.setAttribute("aria-label", "Control number");
-        i.autocomplete = "off";
-        i.value = id;
-
-        var b = el("button", "", "Verify");
-        b.type = "submit";
-
-        f.append(i, b);
-        f.addEventListener("submit", function (e) {
-          e.preventDefault();
-          location.search = "?id=" + encodeURIComponent(i.value.trim());
-        });
-
-        container.append(p, f);
-        return container;
-      }
-
-      function status(ok, text) {
-        var s = el("div", "status " + (ok ? "ok" : "bad"));
-        s.innerHTML = ok ? CHECK : CROSS;
-        s.appendChild(el("span", "", text));
-        return s;
-      }
-
-      function notFound(msg) {
-        var panel = el("div", "details-panel");
-        panel.style.margin = "0 auto";
-        panel.append(
-          status(false, msg),
-          el("p", "verification-note", "Check the control number printed on the certificate, or scan its QR code again."),
-          lookupForm()
-        );
-        mainContent.replaceChildren(panel);
-      }
-
-      if (!id) {
-        mainContent.replaceChildren(lookupForm());
-        return;
-      }
-
-      if (!ID_RE.test(id)) {
-        notFound("Not a valid control number");
-        return;
-      }
-
-      // If ID is provided, alter layout for results
-      fetch("records/" + id + ".json", { cache: "no-store" })
-        .then(function (r) {
-          if (!r.ok) throw new Error("nf");
-          return r.json();
-        })
-        .then(function (d) {
-          topBar.style.display = "block";
-          headerContainer.style.transform = "scale(0.8)";
-          headerContainer.style.marginBottom = "10px";
-
-          var resultContainer = el("div", "result-container");
-          
-          // Left side: Preview
-          var previewPanel = el("div", "preview-panel");
-          
-          // Ideally you map d.pdf or a thumbnail here. Using a generic preview div structure.
-          var previewImgWrapper = el("div", "cert-preview-img");
-          previewImgWrapper.style.backgroundColor = "white";
-          previewImgWrapper.style.width = "100%";
-          previewImgWrapper.style.height = "250px";
-          previewImgWrapper.style.display = "flex";
-          previewImgWrapper.style.alignItems = "center";
-          previewImgWrapper.style.justifyContent = "center";
-          previewImgWrapper.style.color = "#ccc";
-          previewImgWrapper.textContent = "Certificate Preview";
-          
-          var note = el("p", "preview-note", "Lost your certificate? You can view and save the digital copy of your certificate here. It is unsigned. The printed copy carries the handwritten signature of the subject adviser.");
-
-          previewPanel.append(previewImgWrapper, note);
-
-          if (d.pdf) {
-            var a = el("a", "view-btn", "View Digital Copy");
-            a.href = d.pdf;
-            a.target = "_blank";
-            a.rel = "noopener";
-            previewPanel.appendChild(a);
-          }
-
-          // Right side: Details
-          var detailsPanel = el("div", "details-panel");
-          var dl = el("dl");
-          [
-            ["Event", d.event],
-            ["Date", d.date],
-            ["Control no.", d.id]
-          ].forEach(function (p) {
-            dl.append(el("dt", "", p[0]), el("dd", "", p[1]));
-          });
-
-          var verificationNote = el(
-            "p",
-            "verification-note",
-            "This certificate verifies that " + d.name + " participated in the stated event, organized as part of the RTU Boni CpE Seminars and Field Trips subject."
-          );
-
-          detailsPanel.append(
-            status(true, "Valid Certificate"),
-            el("div", "award-label", "Awarded to"),
-            el("h2", "name", d.name),
-            verificationNote,
-            dl
-          );
-
-          resultContainer.append(previewPanel, detailsPanel);
-          mainContent.replaceChildren(resultContainer);
-        })
-        .catch(function () {
-          notFound("No certificate found for " + id);
-        });
-    })();
-  </script>
+  <script src="app.js"></script>
 </body>
 </html>
