@@ -1,30 +1,417 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Verify a certificate</title>
-  <link rel="stylesheet" href="design.css">
+  <title>BHW Certificate Verifier</title>
+
+  <style>
+:root {
+      --bg: #FFFDF2;
+      --panel: #FFFFFF;
+      --ink: #7A662C;
+      --muted: #7A662C;
+      --line: #E5D8AA;
+      --ok: #B38F00;
+      --bad: #D94841;
+      --accent: #DBA900;
+      --btn-text: #1A1507;
+      --title-text: #7A662C;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+    }
+
+    body {
+      background: url("verifier-bg.png") center center / cover no-repeat fixed;
+      color: var(--ink);
+      min-height: 100vh;
+      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px;
+      position: relative;
+      z-index: 0;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60vw;
+      height: 90vh;
+      max-width: 800px;
+      max-height: 1200px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+      filter: blur(100px);
+
+      z-index: -1;
+
+      pointer-events: none;
+    }
+
+    main {
+      width: 100%;
+      max-width: 520px;
+    }
+
+    h1 {
+      font: 600 24px/1.2 system-ui, sans-serif;
+      color: var(--title-text);
+      margin: 0 0 20px;
+      text-align: center;
+      /* Adds center alignment */
+    }
+.page-head {
+  position: relative;
+  margin: 0 0 20px;
+}
+
+.page-head h1 {
+  margin: 0;
+  padding: 0 52px; /* keeps the title from running under the button on narrow screens */
+}
+
+.back {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--title-text);
+  text-decoration: none;
+  font-size: 22px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.back:hover {
+  background: var(--accent);
+  color: var(--btn-text);
+}
+
+.back:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--accent);
+      border-radius: 8px;
+      padding: 28px;
+      box-shadow: 0 4px 16px rgba(37, 140, 86, 0.12);
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      margin-bottom: 18px;
+    }
+
+    .status.ok {
+      color: var(--ok);
+    }
+
+    .status.bad {
+      color: var(--bad);
+    }
+
+    .status svg {
+      flex: none;
+    }
+
+    .name {
+      font: italic 700 clamp(26px, 7vw, 34px)/1.15 Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      margin: 0 0 4px;
+    }
+
+    .lead {
+      color: var(--muted);
+      margin: 0 0 22px;
+    }
+
+    .verification-note {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.6;
+      margin: 0 0 22px;
+      padding: 12px 14px;
+      background: #FFFFFF;
+      /* Slightly darker than panel for contrast */
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+    }
+
+    dl {
+      margin: 0;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px 18px;
+    }
+
+    dt {
+      color: var(--muted);
+    }
+
+    dd {
+      margin: 0;
+      font-weight: 600;
+      color: var(--ink);
+      overflow-wrap: anywhere;
+    }
+
+    .actions {
+      margin-top: 24px;
+    }
+
+    a.btn,
+    button {
+      display: inline-block;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--btn-text);
+      background: var(--accent);
+      border: 0;
+      border-radius: 5px;
+      padding: 10px 16px;
+    }
+
+    a.btn:hover,
+    button:hover {
+      filter: brightness(1.1);
+    }
+
+    a.btn:active,
+    button:active {
+      transform: translateY(1px);
+    }
+
+    a.btn:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    form {
+      display: flex;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      font: inherit;
+      padding: 10px 12px;
+      color: var(--ink);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 5px;
+    }
+
+    input::placeholder {
+      color: var(--muted);
+    }
+
+    input:focus {
+      border-color: var(--accent);
+    }
+
+    .hint {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 14px 0 0;
+    }
+
+    .lost-note {
+      color: var(--muted);
+      font-size: clamp(0.75rem, 0.7rem + 0.4vw, 0.85rem);
+      line-height: 1.5;
+      margin: 22px 0 0;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .webinar-image {
+      display: block;
+      width: 100%;
+      max-width: 800px;
+      height: auto;
+      margin-bottom: 24px;
+      border-radius: 8px;
+    }
+  </style>
 </head>
+
 <body>
-  
-  <div class="top-bar" id="topBar">
-    <a href="?">&#8592; verify</a>
-  </div>
+  <img src="title-webinar.png" alt="Webinar title" class="webinar-image">
+  <main>
+    <div class="page-head">
+  <a class="back" href="./" aria-label="Back to home">&lt;</a>
+  <h1>Certificate Verification</h1>
+</div>
 
-  <div class="header-container" id="headerContainer">
-    <img src="title-webinar.png" alt="Webinar title" class="webinar-image">
-    <h1 class="site-title">Certificate<br>Verifier</h1>
-  </div>
+    <div class="panel" id="panel" aria-live="polite">
+      Checking…
+    </div>
 
-  <main id="mainContent">
-    <!-- Content injected via app.js -->
   </main>
+  <script>
+    (function () {
+      var panel = document.getElementById("panel");
+      var ID_RE = /^[A-Z0-9-]{6,40}$/;
+      var id = (new URLSearchParams(location.search).get("id") || "").trim().toUpperCase();
 
-  <div class="credits">
-    credits: GROUP 8 | CEIT-03-702P | SEMINARS AND FIELD TRIPS
-  </div>
+      function el(tag, cls, text) {
+        var e = document.createElement(tag);
+        if (cls) e.className = cls;
+        if (text !== undefined) e.textContent = text;
+        return e;
+      }
 
-  <script src="app.js"></script>
+      var CHECK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-7"/></svg>';
+
+      var CROSS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg>';
+
+      function lookupForm() {
+        var f = el("form");
+
+        var i = el("input");
+        i.placeholder = "CPEWR-2026-001-ABCD";
+        i.setAttribute("aria-label", "Control number");
+        i.autocomplete = "off";
+        i.value = id;
+
+        var b = el("button", "", "Verify");
+        b.type = "submit";
+
+        f.append(i, b);
+
+        f.addEventListener("submit", function (e) {
+          e.preventDefault();
+          location.search = "?id=" + encodeURIComponent(i.value.trim());
+        });
+
+        return f;
+      }
+
+      function status(ok, text) {
+        var s = el("div", "status " + (ok ? "ok" : "bad"));
+        s.innerHTML = ok ? CHECK : CROSS;
+        s.appendChild(el("span", "", text));
+        return s;
+      }
+
+      function notFound(msg) {
+        panel.replaceChildren(
+          status(false, msg),
+          el("p", "lead", "Check the control number printed on the certificate, or scan its QR code again."),
+          lookupForm()
+        );
+      }
+
+      if (!id) {
+        panel.replaceChildren(
+          el("p", "lead", "Scan the QR code on a certificate, or enter its control number."),
+          lookupForm()
+        );
+        return;
+      }
+
+      if (!ID_RE.test(id)) {
+        notFound("Not a valid control number");
+        return;
+      }
+
+      fetch("records/" + id + ".json", { cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) throw new Error("nf");
+          return r.json();
+        })
+        .then(function (d) {
+          var dl = el("dl");
+
+          [
+            ["Event", d.event],
+            ["Date", d.date],
+            ["Control no.", d.id]
+          ].forEach(function (p) {
+            dl.append(
+              el("dt", "", p[0]),
+              el("dd", "", p[1])
+            );
+          });
+
+          var verificationNote = el(
+            "p",
+            "verification-note",
+            "This certificate verifies that " +
+            d.name +
+            " participated in the stated event, organized as part of the RTU Boni CpE Seminars and Field Trips subject."
+          );
+
+          var nodes = [
+            status(true, "Valid certificate"),
+            el("p", "lead", "Awarded to"),
+            el("h2", "name", d.name),
+            verificationNote,
+            dl
+          ];
+
+          if (d.pdf) {
+            var a = el("a", "btn", "View Digital Copy");
+            a.href = d.pdf;
+            a.target = "_blank";
+            a.rel = "noopener";
+
+            var w = el("div", "actions");
+            w.appendChild(a);
+            nodes.push(w);
+
+            nodes.push(el(
+              "p",
+              "lost-note",
+              "Lost your certificate? You can view and save the digital copy of your certificate here. " +
+              "It is unsigned. The printed copy carries the handwritten signature of the subject adviser."
+            ));
+          }
+
+          panel.replaceChildren.apply(panel, nodes);
+
+          panel.querySelector(".lead").style.marginBottom = "4px";
+          panel.querySelector(".name").style.marginBottom = "18px";
+        })
+        .catch(function () {
+          notFound("No certificate found for " + id);
+        });
+    })();
+  </script>
+
 </body>
+
 </html>
