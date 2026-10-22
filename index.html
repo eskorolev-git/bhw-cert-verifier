@@ -138,6 +138,30 @@
       var topbar = $("topbar"), lookup = $("lookup"), result = $("result");
       var input = $("id-input"), errorBox = $("lookup-error");
 
+      /* ---------- wording for each kind of certificate ----------
+         Each record can have a "role" (for example "speaker"). If it has none,
+         it is treated as a participant. To add another kind, add another block here. */
+      var EVENT_LINE = "organized as part of the RTU Boni CpE Seminars and Field Trips subject.";
+
+      var COPY = {
+        participant: {
+          note: function (name) {
+            return "This certificate verifies that " + name + " participated in the stated event, " + EVENT_LINE;
+          },
+          lost: "Lost your certificate? You can view and save the digital copy of your certificate here. " +
+                "It is unsigned. The printed copy carries the handwritten signature of the subject adviser."
+        },
+        speaker: {
+          note: function (name) {
+            return "This certificate verifies that " + name + " was recognized with a Certificate of Appreciation " +
+                   "as resource speaker for the stated event, in appreciation of the knowledge and expertise shared. " +
+                   "The event was " + EVENT_LINE;
+          },
+          lost: "Lost your certificate? You can view and save the digital copy of your certificate here. " +
+                "It is unsigned. The printed copy carries the handwritten signatures of the signatories."
+        }
+      };
+
       /* ---------- the form: send the person to ?id=THEIR-NUMBER ---------- */
       $("lookup-form").addEventListener("submit", function (e) {
         e.preventDefault();
@@ -162,9 +186,12 @@
         topbar.hidden = false;
         lookup.hidden = true;
 
+        // pick the wording that matches this record's role (default: participant)
+        var words = COPY[d.role] || COPY.participant;
+
         $("f-name").textContent = d.name;
-        $("f-note").textContent = "This certificate verifies that " + d.name +
-          " participated in the stated event, organized as part of the RTU Boni CpE Seminars and Field Trips subject.";
+        $("f-note").textContent = words.note(d.name);
+        $("lost-note").textContent = words.lost;
         $("f-event").textContent = d.event;
         $("f-date").textContent = d.date;
         $("f-id").textContent = d.id;
