@@ -4,411 +4,253 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>BHW Certificate Verifier</title>
+  <title>Certificate Verifier</title>
 
-  <style>
-:root {
-      --bg: #FFFDF2;
-      --panel: #FFFFFF;
-      --ink: #7A662C;
-      --muted: #7A662C;
-      --line: #E5D8AA;
-      --ok: #B38F00;
-      --bad: #D94841;
-      --accent: #DBA900;
-      --btn-text: #1A1507;
-      --title-text: #7A662C;
-    }
+  <!-- Plus Jakarta Sans from Google Fonts (regular, medium, semi-bold, bold, extra-bold + bold italics) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700;1,800&display=swap"
+    rel="stylesheet">
 
-    * {
-      box-sizing: border-box;
-    }
-
-    html,
-    body {
-      margin: 0;
-    }
-
-    body {
-      background: url("verifier-bg.png") center center / cover no-repeat fixed;
-      color: var(--ink);
-      min-height: 100vh;
-      font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 48px 20px;
-      position: relative;
-      z-index: 0;
-    }
-
-    body::before {
-      content: "";
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 60vw;
-      height: 90vh;
-      max-width: 800px;
-      max-height: 1200px;
-      background: rgba(255, 255, 255, 0.4);
-      border-radius: 50%;
-      filter: blur(100px);
-
-      z-index: -1;
-
-      pointer-events: none;
-    }
-
-    main {
-      width: 100%;
-      max-width: 520px;
-    }
-
-    h1 {
-      font: 600 24px/1.2 system-ui, sans-serif;
-      color: var(--title-text);
-      margin: 0 0 20px;
-      text-align: center;
-      /* Adds center alignment */
-    }
-.page-head {
-  position: relative;
-  margin: 0 0 20px;
-}
-
-.page-head h1 {
-  margin: 0;
-  padding: 0 52px; /* keeps the title from running under the button on narrow screens */
-}
-
-.back {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  color: var(--title-text);
-  text-decoration: none;
-  font-size: 22px;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.back:hover {
-  background: var(--accent);
-  color: var(--btn-text);
-}
-
-.back:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
-}
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-top: 4px solid var(--accent);
-      border-radius: 8px;
-      padding: 28px;
-      box-shadow: 0 4px 16px rgba(37, 140, 86, 0.12);
-    }
-
-    .status {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-weight: 600;
-      margin-bottom: 18px;
-    }
-
-    .status.ok {
-      color: var(--ok);
-    }
-
-    .status.bad {
-      color: var(--bad);
-    }
-
-    .status svg {
-      flex: none;
-    }
-
-    .name {
-      font: italic 700 clamp(26px, 7vw, 34px)/1.15 Georgia, "Times New Roman", serif;
-      color: var(--ink);
-      margin: 0 0 4px;
-    }
-
-    .lead {
-      color: var(--muted);
-      margin: 0 0 22px;
-    }
-
-    .verification-note {
-      color: var(--muted);
-      font-size: 14px;
-      line-height: 1.6;
-      margin: 0 0 22px;
-      padding: 12px 14px;
-      background: #FFFFFF;
-      /* Slightly darker than panel for contrast */
-      border-left: 3px solid var(--accent);
-      border-radius: 4px;
-    }
-
-    dl {
-      margin: 0;
-      display: grid;
-      grid-template-columns: auto 1fr;
-      gap: 10px 18px;
-    }
-
-    dt {
-      color: var(--muted);
-    }
-
-    dd {
-      margin: 0;
-      font-weight: 600;
-      color: var(--ink);
-      overflow-wrap: anywhere;
-    }
-
-    .actions {
-      margin-top: 24px;
-    }
-
-    a.btn,
-    button {
-      display: inline-block;
-      font: inherit;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
-      color: var(--btn-text);
-      background: var(--accent);
-      border: 0;
-      border-radius: 5px;
-      padding: 10px 16px;
-    }
-
-    a.btn:hover,
-    button:hover {
-      filter: brightness(1.1);
-    }
-
-    a.btn:active,
-    button:active {
-      transform: translateY(1px);
-    }
-
-    a.btn:focus-visible,
-    button:focus-visible,
-    input:focus-visible {
-      outline: 3px solid var(--accent);
-      outline-offset: 2px;
-    }
-
-    form {
-      display: flex;
-      gap: 8px;
-      margin-top: 18px;
-    }
-
-    input {
-      flex: 1;
-      min-width: 0;
-      font: inherit;
-      padding: 10px 12px;
-      color: var(--ink);
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: 5px;
-    }
-
-    input::placeholder {
-      color: var(--muted);
-    }
-
-    input:focus {
-      border-color: var(--accent);
-    }
-
-    .hint {
-      color: var(--muted);
-      font-size: 14px;
-      margin: 14px 0 0;
-    }
-
-    .lost-note {
-      color: var(--muted);
-      font-size: clamp(0.75rem, 0.7rem + 0.4vw, 0.85rem);
-      line-height: 1.5;
-      margin: 22px 0 0;
-      padding-top: 14px;
-      border-top: 1px solid var(--line);
-    }
-
-    .webinar-image {
-      display: block;
-      width: 100%;
-      max-width: 800px;
-      height: auto;
-      margin-bottom: 24px;
-      border-radius: 8px;
-    }
-  </style>
+  <!-- all the styling lives in this file -->
+  <link rel="stylesheet" href="design.css">
 </head>
 
 <body>
-  <img src="title-webinar.png" alt="Webinar title" class="webinar-image">
-  <main>
-    <div class="page-head">
-  <a class="back" href="./" aria-label="Back to home">&lt;</a>
-  <h1>Certificate Verification</h1>
-</div>
 
-    <div class="panel" id="panel" aria-live="polite">
-      Checking…
-    </div>
+  <!-- SVG filter used by the "Certificate Verifier" title. It is invisible; design.css
+       switches it on with:  filter: url(#inset-glow)
+       How it works: blur the letters, subtract the blur from the original letters
+       (what is left is a thin ring just inside the edges), paint that ring lime,
+       and lay it on top of the white letters. -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <filter id="inset-glow" x="-5%" y="-10%" width="110%" height="120%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="2.6" result="blur" />
+      <feComposite in="SourceAlpha" in2="blur" operator="out" result="edge" />
+      <feComponentTransfer in="edge" result="edge-strong">
+        <feFuncA type="linear" slope="2" />
+      </feComponentTransfer>
+      <feFlood flood-color="#D1FF00" result="lime" />
+      <feComposite in="lime" in2="edge-strong" operator="in" result="lime-edge" />
+      <feMerge>
+        <feMergeNode in="SourceGraphic" />
+        <feMergeNode in="lime-edge" />
+      </feMerge>
+    </filter>
+  </svg>
+
+  <!-- Background layer: gradient + grid come from CSS, the random white squares from the script below -->
+  <div class="backdrop" aria-hidden="true">
+    <div class="backdrop__pixels" id="pixels"></div>
+  </div>
+
+  <!-- Top bar with the back link (hidden on the first screen, shown on results) -->
+  <header class="topbar" id="topbar" hidden>
+    <a class="topbar__back" href="./">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+        stroke-linejoin="round" aria-hidden="true">
+        <path d="M20 12H4M10 5l-7 7 7 7" />
+      </svg>
+      <span>verify</span>
+    </a>
+  </header>
+
+  <main class="page">
+
+    <!-- Logo | divider | title -->
+    <section class="brand">
+      <img class="brand__logo" src="title-webinar.png" alt="Beyond Hello, World!: Exploring Python’s Possibilities">
+      <span class="brand__divider" aria-hidden="true"></span>
+      <h1 class="brand__title">Certificate<br>Verifier</h1>
+    </section>
+
+    <!-- SCREEN 1: type or scan a control number -->
+    <section class="lookup" id="lookup">
+      <p class="lookup__caption">Enter a control number or scan the qr code</p>
+      <form class="lookup__form" id="lookup-form" autocomplete="off">
+        <input class="lookup__input" id="id-input" type="text" placeholder="CPEWR-2026-001-NNNN"
+          aria-label="Control number" autocapitalize="characters" spellcheck="false" required>
+        <button class="lookup__btn" type="submit">Verify</button>
+      </form>
+      <p class="lookup__error" id="lookup-error" role="alert" hidden></p>
+    </section>
+
+    <!-- SCREEN 2: the result. The script fills in the blanks marked with id="f-..." -->
+    <section class="result" id="result" aria-live="polite" hidden>
+
+      <article class="card--valid">
+        <header class="card__head">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" aria-hidden="true">
+            <path d="M21.5 12a9.5 9.5 0 1 1-5.6-8.65" />
+            <path d="M8 11.5l4 4 9-10" />
+          </svg>
+          <h2>Valid certificate</h2>
+        </header>
+        <div class="card__body">
+          <p class="eyebrow">Awarded to</p>
+          <p class="name" id="f-name"></p>
+          <p class="note" id="f-note"></p>
+          <dl class="facts">
+            <div>
+              <dt>Event</dt>
+              <dd id="f-event"></dd>
+            </div>
+            <div>
+              <dt>Date</dt>
+              <dd id="f-date"></dd>
+            </div>
+            <div>
+              <dt>Control no.</dt>
+              <dd id="f-id"></dd>
+            </div>
+          </dl>
+        </div>
+      </article>
+
+      <aside class="card--preview" id="card-preview">
+        <div class="preview__frame" id="preview-frame"></div>
+        <a class="pill" id="f-pdf" href="#" target="_blank" rel="noopener">View Digital Copy</a>
+      </aside>
+
+      <p class="lost-note" id="lost-note">
+        Lost your certificate? You can view and save the digital copy of your certificate here.
+        It is unsigned. The printed copy carries the handwritten signature of the subject adviser.
+      </p>
+    </section>
 
   </main>
+
+  <footer class="credits">credits: GROUP 8 | CEIT-03-702P | SEMINARS AND FIELD TRIPS</footer>
+
   <script>
     (function () {
-      var panel = document.getElementById("panel");
-      var ID_RE = /^[A-Z0-9-]{6,40}$/;
-      var id = (new URLSearchParams(location.search).get("id") || "").trim().toUpperCase();
+      "use strict";
 
-      function el(tag, cls, text) {
-        var e = document.createElement(tag);
-        if (cls) e.className = cls;
-        if (text !== undefined) e.textContent = text;
-        return e;
+      /* ---------- helpers ---------- */
+      function $(id) { return document.getElementById(id); }
+
+      var ID_RE = /^[A-Z0-9-]{6,40}$/;                    // allowed shape of a control number
+      var params = new URLSearchParams(location.search);
+      var id = (params.get("id") || "").trim().toUpperCase();   // the ?id=... part of the address
+
+      var topbar = $("topbar"), lookup = $("lookup"), result = $("result");
+      var input = $("id-input"), errorBox = $("lookup-error");
+
+      /* ---------- the form: send the person to ?id=THEIR-NUMBER ---------- */
+      $("lookup-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        location.search = "?id=" + encodeURIComponent(input.value.trim());
+      });
+
+      /* ---------- screens ---------- */
+      function showLookup(message) {
+        document.body.dataset.view = "lookup";
+        result.hidden = true;
+        lookup.hidden = false;
+        input.value = id;
+        if (message) {
+          topbar.hidden = false;                           // let them go back
+          errorBox.textContent = message;
+          errorBox.hidden = false;
+        }
       }
 
-      var CHECK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-7"/></svg>';
+      function showResult(d) {
+        document.body.dataset.view = "result";
+        topbar.hidden = false;
+        lookup.hidden = true;
 
-      var CROSS = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></svg>';
+        $("f-name").textContent = d.name;
+        $("f-note").textContent = "This certificate verifies that " + d.name +
+          " participated in the stated event, organized as part of the RTU Boni CpE Seminars and Field Trips subject.";
+        $("f-event").textContent = d.event;
+        $("f-date").textContent = d.date;
+        $("f-id").textContent = d.id;
 
-      function lookupForm() {
-        var f = el("form");
+        // Preview card: only when a digital copy exists
+        var hasCopy = Boolean(d.pdf);
+        $("card-preview").hidden = !hasCopy;
+        $("lost-note").hidden = !hasCopy;
+        result.classList.toggle("result--solo", !hasCopy);
 
-        var i = el("input");
-        i.placeholder = "CPEWR-2026-001-ABCD";
-        i.setAttribute("aria-label", "Control number");
-        i.autocomplete = "off";
-        i.value = id;
+        if (hasCopy) {
+          $("f-pdf").href = d.pdf;
 
-        var b = el("button", "", "Verify");
-        b.type = "submit";
-
-        f.append(i, b);
-
-        f.addEventListener("submit", function (e) {
-          e.preventDefault();
-          location.search = "?id=" + encodeURIComponent(i.value.trim());
-        });
-
-        return f;
-      }
-
-      function status(ok, text) {
-        var s = el("div", "status " + (ok ? "ok" : "bad"));
-        s.innerHTML = ok ? CHECK : CROSS;
-        s.appendChild(el("span", "", text));
-        return s;
-      }
-
-      function notFound(msg) {
-        panel.replaceChildren(
-          status(false, msg),
-          el("p", "lead", "Check the control number printed on the certificate, or scan its QR code again."),
-          lookupForm()
-        );
-      }
-
-      if (!id) {
-        panel.replaceChildren(
-          el("p", "lead", "Scan the QR code on a certificate, or enter its control number."),
-          lookupForm()
-        );
-        return;
-      }
-
-      if (!ID_RE.test(id)) {
-        notFound("Not a valid control number");
-        return;
-      }
-
-      fetch("records/" + id + ".json", { cache: "no-store" })
-        .then(function (r) {
-          if (!r.ok) throw new Error("nf");
-          return r.json();
-        })
-        .then(function (d) {
-          var dl = el("dl");
-
-          [
-            ["Event", d.event],
-            ["Date", d.date],
-            ["Control no.", d.id]
-          ].forEach(function (p) {
-            dl.append(
-              el("dt", "", p[0]),
-              el("dd", "", p[1])
-            );
-          });
-
-          var verificationNote = el(
-            "p",
-            "verification-note",
-            "This certificate verifies that " +
-            d.name +
-            " participated in the stated event, organized as part of the RTU Boni CpE Seminars and Field Trips subject."
-          );
-
-          var nodes = [
-            status(true, "Valid certificate"),
-            el("p", "lead", "Awarded to"),
-            el("h2", "name", d.name),
-            verificationNote,
-            dl
-          ];
-
-          if (d.pdf) {
-            var a = el("a", "btn", "View Digital Copy");
-            a.href = d.pdf;
-            a.target = "_blank";
-            a.rel = "noopener";
-
-            var w = el("div", "actions");
-            w.appendChild(a);
-            nodes.push(w);
-
-            nodes.push(el(
-              "p",
-              "lost-note",
-              "Lost your certificate? You can view and save the digital copy of your certificate here. " +
-              "It is unsigned. The printed copy carries the handwritten signature of the subject adviser."
-            ));
+          var frame = $("preview-frame");
+          frame.replaceChildren();
+          if (d.preview) {
+            var img = document.createElement("img");
+            img.className = "preview__img";
+            img.src = d.preview;
+            img.alt = "Preview of the certificate awarded to " + d.name;
+            img.addEventListener("error", function () { frame.replaceChildren(emptyPreview()); });
+            frame.appendChild(img);
+          } else {
+            frame.appendChild(emptyPreview());
           }
+        }
+        result.hidden = false;
+      }
 
-          panel.replaceChildren.apply(panel, nodes);
+      function emptyPreview() {
+        var box = document.createElement("div");
+        box.className = "preview__empty";
+        box.textContent = "Preview not available. Use the button below to open the certificate.";
+        return box;
+      }
 
-          panel.querySelector(".lead").style.marginBottom = "4px";
-          panel.querySelector(".name").style.marginBottom = "18px";
-        })
-        .catch(function () {
-          notFound("No certificate found for " + id);
-        });
+      /* ---------- decide which screen to show ---------- */
+      if (!id) {
+        showLookup();
+      } else if (!ID_RE.test(id)) {
+        showLookup("That is not a valid control number.");
+      } else {
+        fetch("records/" + id + ".json", { cache: "no-store" })
+          .then(function (r) { if (!r.ok) throw new Error("not found"); return r.json(); })
+          .then(showResult)
+          .catch(function () { showLookup("No certificate found for " + id + ". Check the number and try again."); });
+      }
+
+      /* ---------- random white squares on the grid ---------- */
+      var pixelsWidth = 0;
+
+      function buildPixels() {
+        var layer = $("pixels");
+        var cell = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--cell")) || 46;
+
+        // use the biggest size the screen could be, so scrolling or rotating never shows an empty edge
+        var w = Math.max(window.innerWidth, screen.width);
+        var h = Math.max(window.innerHeight, screen.height);
+        var cols = Math.ceil(w / cell), rows = Math.ceil(h / cell);
+        var count = Math.round(cols * rows * 0.03);        // about 3% of the squares
+
+        var used = {};
+        layer.replaceChildren();
+        while (count-- > 0) {
+          var c = Math.floor(Math.random() * cols), r = Math.floor(Math.random() * rows);
+          if (used[c + "," + r]) continue;
+          used[c + "," + r] = true;
+
+          var p = document.createElement("div");
+          p.className = "pixel";
+          p.style.left = (c * cell) + "px";                // snap to the grid
+          p.style.top = (r * cell) + "px";
+          p.style.setProperty("--o", (0.16 + Math.random() * 0.24).toFixed(2));   // random see-through amount
+          layer.appendChild(p);
+        }
+        pixelsWidth = window.innerWidth;
+      }
+
+      buildPixels();
+      var resizeTimer;
+      window.addEventListener("resize", function () {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(function () {
+          if (window.innerWidth !== pixelsWidth) buildPixels();   // ignore phone address-bar height changes
+        }, 200);
+      });
     })();
   </script>
 
