@@ -1,0 +1,628 @@
+/* =====================================================================
+   design.css : all the styling for the Certificate Verifier page.
+   index.html holds the structure and the logic; this file only decides
+   how things LOOK. Sections:
+     1. Design tokens (colors, sizes)  - change these first
+     2. Page + background (gradient, grid, pixels)
+     3. Top bar, logo + title
+     4. Lookup form
+     5. Result cards
+     6. Footer credits
+     7. Bigger screens (media queries)
+   ===================================================================== */
+
+
+/* 1. DESIGN TOKENS ---------------------------------------------------
+   A "custom property" (--name) is a variable. Use it with var(--name).
+   Change a value here and it updates everywhere it is used.            */
+:root {
+    /* colors sampled from the design */
+    --lime: #D1FF00;
+    /* top bar, card borders, header band */
+    --lime-soft: #DAFF30;
+    --cream: #FAFFE5;
+    /* near-white end of gradients */
+    --olive: #938D25;
+    /* headings, name, big text */
+    --olive-deep: #6F6A18;
+    /* small text (a bit darker so it stays readable) */
+    --teal: #268E99;
+    /* back link */
+    --coral: #C2410C;
+    /* error message */
+
+    /* background gradient colors */
+    --bg-edge: #258D9A;
+    /* teal in the corners */
+    --bg-green: #6BBA5D;
+    /* main green */
+    --bg-glow: #C8F60E;
+    /* lime glow in the middle */
+
+    /* grid + pixels */
+    --cell: 46px;
+    /* size of one grid square */
+    --grid-line: rgba(255, 255, 255, 0.3);
+
+    /* shapes */
+    --radius-card: 44px;
+    --radius-pill: 999px;
+
+    --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+
+/* 2. PAGE + BACKGROUND ---------------------------------------------- */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+}
+
+body {
+    min-height: 100vh;
+    min-height: 100dvh;
+    /* dvh = the visible height on phones */
+    display: flex;
+    flex-direction: column;
+    /* topbar, page, footer stacked */
+    font-family: var(--font);
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--olive-deep);
+    background: var(--bg-green);
+    /* shown only if the gradient fails */
+}
+
+/* The background lives in its own fixed layer behind everything. */
+.backdrop {
+    position: fixed;
+    inset: 0;
+    /* top/right/bottom/left = 0 */
+    z-index: -1;
+    background:
+        /* top layer: the lime glow behind the title and input */
+        radial-gradient(ellipse 55% 50% at 50% 56%, var(--bg-glow) 0%, rgba(200, 246, 14, 0) 100%),
+        /* bottom layer: green in the middle, teal toward the corners */
+        radial-gradient(ellipse farthest-corner at 50% 50%, var(--bg-green) 42%, var(--bg-edge) 100%);
+}
+
+/* The grid: two sets of thin lines (vertical + horizontal) repeated every --cell. */
+.backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+        linear-gradient(to right, var(--grid-line) 2px, transparent 2px),
+        linear-gradient(to bottom, var(--grid-line) 2px, transparent 2px);
+    background-size: var(--cell) var(--cell);
+}
+
+/* The random white squares. index.html's script creates them. */
+.backdrop__pixels {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+}
+
+.pixel {
+    position: absolute;
+    width: var(--cell);
+    height: var(--cell);
+    background: rgba(255, 255, 255, var(--o, 0.3));
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.page {
+    flex: 1;
+    /* take the free space so the footer sits at the bottom */
+    width: 100%;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 28px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* On the first screen (no result yet) the logo + title + input sit in the middle of the window. */
+body[data-view="lookup"] .page {
+    justify-content: center;
+    padding-bottom: 8vh;
+}
+
+body[data-view="lookup"] .brand {
+    margin-top: 0;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* 3. TOP BAR, LOGO + TITLE ------------------------------------------ */
+.topbar {
+    background: var(--lime);
+    padding: 14px 24px;
+}
+
+.topbar__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--teal);
+    font-size: 1.25rem;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.topbar__back:hover {
+    text-decoration: underline;
+}
+
+.topbar__back svg {
+    width: 30px;
+    height: 30px;
+}
+
+/* logo | divider | title, in one row */
+.brand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: clamp(16px, 3vw, 36px);
+    margin: 4vh 0 28px;
+    text-align: left;
+}
+
+.brand__logo {
+    width: clamp(200px, 32vw, 460px);
+    height: auto;
+}
+
+.brand__divider {
+    align-self: stretch;
+    width: 4px;
+    min-height: 90px;
+    background: #fff;
+    border-radius: 2px;
+    filter: drop-shadow(0 0 8px rgba(209, 255, 0, 0.8));
+}
+
+/* "Certificate Verifier": white letters, lime glow just inside the edges
+   (the INSET effect, made by the SVG filter #inset-glow in index.html),
+   then a soft green shadow underneath. */
+.brand__title {
+    margin: 0;
+    font-size: clamp(2.1rem, 5.6vw, 4.25rem);
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    color: #fff;
+    filter: url(#inset-glow) drop-shadow(0 5px 7px rgba(18, 95, 50, 0.6));
+}
+
+
+/* 4. LOOKUP FORM ----------------------------------------------------- */
+.lookup {
+    width: 100%;
+    max-width: 760px;
+    text-align: center;
+}
+
+.lookup__caption {
+    margin: 0 0 14px;
+    font-size: clamp(0.95rem, 1.6vw, 1.25rem);
+    font-weight: 700;
+    color: var(--olive);
+}
+
+.lookup__form {
+    --h: clamp(54px, 7vw, 76px);
+    /* height of the pill */
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: var(--h);
+}
+
+.lookup__input {
+    flex: 1;
+    min-width: 0;
+    height: 100%;
+    padding: 0 calc(var(--h) * 1.9) 0 calc(var(--h) * 0.5);
+    /* room on the right for the button */
+    font: 700 clamp(1rem, 2.4vw, 2rem) var(--font);
+    color: var(--olive);
+    background: rgba(255, 255, 255, 0.42);
+    border: clamp(5px, 0.7vw, 8px) solid var(--lime);
+    border-radius: var(--radius-pill);
+    outline: none;
+    text-transform: uppercase;
+}
+
+.lookup__input::placeholder {
+    color: var(--olive);
+    opacity: 0.45;
+}
+
+.lookup__input:focus {
+    background: rgba(255, 255, 255, 0.6);
+    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
+}
+
+.lookup__btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    padding: 0 clamp(22px, 4vw, 54px);
+    font: 700 clamp(1.05rem, 2.6vw, 2.1rem) var(--font);
+    color: var(--olive);
+    background: linear-gradient(90deg, var(--lime-soft), #F7FFD0 60%, #fff);
+    border: 0;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    box-shadow: 0 6px 16px rgba(60, 110, 20, 0.28);
+}
+
+.lookup__btn:hover {
+    filter: brightness(1.04);
+}
+
+.lookup__btn:active {
+    transform: translateY(1px);
+}
+
+.lookup__btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+.lookup__error {
+    margin: 16px auto 0;
+    padding: 10px 18px;
+    display: inline-block;
+    font-weight: 600;
+    color: var(--coral);
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 16px;
+}
+
+
+/* 5. RESULT CARDS ---------------------------------------------------- */
+/* The three pieces (valid card, preview card, note) are placed with
+   grid-template-areas, so we can rearrange them per screen size.
+   PHONE: one column, valid card FIRST.  See section 7 for desktop.     */
+.result {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+        "valid"
+        "preview"
+        "lost";
+    gap: 22px;
+    margin: 4px auto 0;
+    max-width: 680px;
+    /* stops the cards stretching across a tablet */
+}
+
+.card--valid {
+    grid-area: valid;
+}
+
+.card--preview {
+    grid-area: preview;
+}
+
+.lost-note {
+    grid-area: lost;
+}
+
+.result--solo {
+    /* no preview available: just the valid card */
+    max-width: 700px;
+    grid-template-areas: "valid";
+}
+
+/* --- the "valid certificate" glass card --- */
+.card--valid {
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-card);
+    overflow: hidden;
+    background:
+        linear-gradient(135deg, rgba(235, 255, 150, 0.8), rgba(255, 255, 255, 0.55) 45%, rgba(236, 250, 222, 0.6));
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 14px 36px rgba(20, 90, 50, 0.22);
+}
+
+.card__head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 26px;
+    background: linear-gradient(90deg, var(--cream) 0%, var(--lime-soft) 100%);
+    color: var(--olive);
+}
+
+.card__head svg {
+    width: 32px;
+    height: 32px;
+    flex: none;
+}
+
+.card__head h2 {
+    margin: 0;
+    font-size: clamp(1.05rem, 2.2vw, 1.5rem);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.01em;
+}
+
+.card__body {
+    padding: 22px 26px 28px;
+}
+
+.eyebrow {
+    margin: 0;
+    color: var(--olive-deep);
+}
+
+.name {
+    margin: 6px 0 18px;
+    font-size: clamp(1.7rem, 4.6vw, 2.6rem);
+    font-weight: 800;
+    font-style: italic;
+    /* needs the italic weights loaded from Google Fonts */
+    line-height: 1.12;
+    color: var(--olive);
+    overflow-wrap: anywhere;
+}
+
+.note {
+    margin: 0 0 20px;
+    color: var(--olive-deep);
+}
+
+/* Event / Date / Control no. as a two-column list */
+.facts {
+    margin: 0;
+    display: grid;
+    gap: 10px;
+}
+
+.facts>div {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    /* label column | value column */
+    gap: 0 16px;
+}
+
+.facts dt {
+    color: var(--olive-deep);
+}
+
+.facts dd {
+    margin: 0;
+    color: var(--olive);
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+/* --- the certificate preview card --- */
+.card--preview {
+    --border: clamp(7px, 0.9vw, 10px);
+    display: flex;
+    flex-direction: column;
+    border: var(--border) solid var(--lime);
+    border-radius: calc(var(--radius-card) + 8px);
+    background: linear-gradient(180deg, rgba(232, 255, 129, 0.65), rgba(214, 255, 60, 0.85));
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 14px 36px rgba(20, 90, 50, 0.22);
+}
+
+.preview__frame {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    /* centers the picture in the free space */
+    padding: clamp(16px, 3vw, 30px);
+}
+
+.preview__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+    background: #fff;
+    box-shadow: 0 8px 22px rgba(30, 80, 30, 0.3);
+}
+
+.preview__empty {
+    width: 100%;
+    aspect-ratio: 297 / 210;
+    /* same shape as an A4 landscape certificate */
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding: 16px;
+    color: var(--olive-deep);
+    font-weight: 600;
+    border: 2px dashed rgba(111, 106, 24, 0.5);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* "View Digital Copy": a pill that sits on the bottom edge of the card.
+   The negative margins pull it over the card's border. */
+.pill {
+    margin: 0 calc(var(--border) * -1) calc(var(--border) * -1);
+    min-height: clamp(58px, 6vw, 80px);
+    display: grid;
+    place-items: center;
+    padding: 0 20px;
+    font-size: clamp(1.1rem, 2.2vw, 1.8rem);
+    font-weight: 700;
+    color: var(--olive);
+    text-decoration: none;
+    background: linear-gradient(90deg, #D8FF1E 0%, #EEFFA8 55%, #FFFFF6 100%);
+    border-radius: var(--radius-pill);
+    box-shadow: 0 -4px 14px rgba(60, 110, 20, 0.22), 0 8px 18px rgba(60, 110, 20, 0.22);
+}
+
+.pill:hover {
+    filter: brightness(1.04);
+}
+
+.pill:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+
+/* small note under the preview card */
+.lost-note {
+    margin: 0;
+    padding: 0 6px;
+    max-width: 62ch;
+    justify-self: center;
+    text-align: center;
+    font-size: clamp(0.78rem, 0.7rem + 0.3vw, 0.9rem);
+    line-height: 1.5;
+    font-weight: 500;
+    color: #fff;
+    text-shadow: 0 1px 3px rgba(10, 70, 40, 0.55);
+    /* keeps white text readable on the green */
+}
+
+
+/* 6. FOOTER CREDITS -------------------------------------------------- */
+.credits {
+    padding: 0 24px 18px;
+    text-align: center;
+    text-wrap: balance;
+    /* avoids a single word on the last line */
+    font-size: clamp(0.7rem, 1.9vw, 0.95rem);
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: #fff;
+    text-shadow: 0 1px 4px rgba(10, 70, 40, 0.45);
+}
+
+
+/* 7. BIGGER SCREENS --------------------------------------------------
+   "min-width: 900px" means: only apply these rules when the window is at
+   least 900px wide. Everything above is the mobile version.             */
+@media (min-width: 900px) {
+    :root {
+        --cell: 46px;
+    }
+
+    .page {
+        padding-top: 40px;
+    }
+
+    /* two columns: preview on the LEFT, valid card on the RIGHT */
+    .result {
+        grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+        grid-template-areas:
+            "preview valid"
+            "lost    .";
+        gap: 26px 26px;
+        align-items: stretch;
+        /* both cards get the same height */
+        max-width: none;
+    }
+
+    .result--solo {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas: "valid";
+        max-width: 700px;
+    }
+
+    .card__body {
+        padding: 26px 34px 32px;
+    }
+
+    .card__head {
+        padding: 20px 34px;
+    }
+
+    .facts>div {
+        grid-template-columns: 9rem minmax(0, 1fr);
+    }
+
+    .card--valid,
+    .card--preview {
+        font-size: 1.125rem;
+    }
+
+    .credits {
+        text-align: right;
+        padding: 0 28px 20px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .card--valid {
+        font-size: 1.25rem;
+    }
+}
+
+/* very small phones: stack the logo above the title */
+@media (max-width: 560px) {
+    :root {
+        --cell: 36px;
+    }
+
+    .brand {
+        flex-direction: column;
+        gap: 14px;
+        text-align: center;
+        margin-top: 3vh;
+    }
+
+    .brand__divider {
+        width: 90px;
+        height: 4px;
+        min-height: 0;
+        align-self: center;
+    }
+
+    .brand__logo {
+        width: min(78vw, 360px);
+    }
+
+    .card__head,
+    .card__body {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .facts>div {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+
+    /* label above value */
+    .facts dt {
+        font-size: 0.85em;
+        opacity: 0.85;
+    }
+}
+
+/* respect people who turn off motion (there is none now, but keep this habit) */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        transition: none !important;
+        animation: none !important;
+    }
+}
